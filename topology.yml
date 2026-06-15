@@ -6,10 +6,10 @@ hosts:
       mgmt_user: debian
     flavor: standard.small
     hidden: True
-    volumes:
-      - size: 16
-      - size: 2
-      - size: 9
+    #volumes:
+      #- size: 16
+      #- size: 2
+      #- size: 9
 
   - name: home
     base_box:
