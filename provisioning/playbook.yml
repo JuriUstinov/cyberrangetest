@@ -1,13 +1,13 @@
 - hosts: server
   become: true
   tasks:
-    - name: Install Apache, MySQL and PHP5
+    - name: Install Apache, MariaDB (MySQL-Ersatz) and PHP
       ansible.builtin.apt:
         name:
           - apache2
-          - mysql-server
-          - php5-mysql
-          - php5
+          - mariadb-server    # <--- Korrigiert (ersetzt mysql-server)
+          - php-mysql         # <--- Korrigiert (generischer Name für PHP-MySQL-Anbindung)
+          - php               # <--- Korrigiert (installiert die Standard-PHP-Version des Images, bei Debian 9 ist das PHP 7.0)
         state: present
         update_cache: true
 
