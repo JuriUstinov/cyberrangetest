@@ -1,0 +1,17 @@
+- hosts: server
+  become: true
+  tasks:
+    - name: Install Apache, MySQL and PHP5
+      ansible.builtin.apt:
+        name:
+          - apache2
+          - mysql-server
+          - php5-mysql
+          - php5
+        state: present
+        update_cache: true
+
+    - name: Copy app to the web root
+      ansible.builtin.copy:
+        src: web-app/
+        dest: /var/www/html/
