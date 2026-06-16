@@ -1,4 +1,4 @@
-name: small-sandbox
+name: test-sandbox
 hosts:
   #- name: server
     #base_box:
