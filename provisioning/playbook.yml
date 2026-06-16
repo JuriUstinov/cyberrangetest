@@ -1,7 +1,6 @@
 - name: Bereite Home-VM fuer GUI (RDP) und Web-SSH vor
   hosts: home
   become: true
-  owner_specified.openstack.gui_access: true
   vars:
     trainee_user: "student"
     # Passwort-Hash fuer: cyberrange2026
