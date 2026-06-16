@@ -1,1 +1,75 @@
-- hosts: all
+- name: Bereite Home-VM fuer GUI (RDP) und Web-SSH vor
+  hosts: home
+  become: true
+  vars:
+    trainee_user: "student"
+    # Passwort-Hash fuer: cyberrange2026
+    trainee_password_hash: "$6$rounds=656000$vdYmXbE6pX2R1gY.$O86W0XgGsh9f5Y5XkX0Z7GjBYmN9Z9C6wY8n7Z9C6wY8n7Z9C6wY8n7Z9C6wY8n7Z9C6wY8n7Z9C6wY8n7Z9C6w=="
+
+  tasks:
+    # --- 1. GUI & RDP SETUP ---
+    - name: Aktualisiere die Paketquellen
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Installiere XFCE Desktop-Umgebung und XRDP
+      apt:
+        name:
+          - xfce4
+          - xfce4-goodies
+          - xrdp
+        state: present
+
+    - name: Erlaube dem XRDP-Dienst den Zugriff auf das SSL-Zertifikat
+      user:
+        name: xrdp
+        groups: ssl-cert
+        append: yes
+
+    - name: Setze XFCE als Standard-Desktop fuer XRDP
+      copy:
+        content: "xfce4-session"
+        dest: "/etc/skel/.xsession"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Stelle sicher, dass der XRDP-Dienst laeuft
+      systemd:
+        name: xrdp
+        state: restarted
+        enabled: yes
+
+    # --- 2. SSH-ZUGANG REFORMIEREN (Laut Doku-Anforderung) ---
+    - name: Aktiviere Passwort-Authentifizierung in der sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+        state: present
+      notify: Neustart SSH-Dienst
+
+    # --- 3. TRAINEE USER ERSTELLEN ---
+    - name: Erstelle den Trainee-Benutzer mit sudo-Rechten
+      user:
+        name: "{{ trainee_user }}"
+        password: "{{ trainee_password_hash }}"
+        shell: /bin/bash
+        groups: sudo
+        append: yes
+        state: present
+
+    - name: Erlaube dem Trainee sudo ohne Passwortabfrage
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: "^%sudo"
+        line: "%sudo ALL=(ALL) NOPASSWD:ALL"
+        validate: 'visudo -cf %s'
+
+  handlers:
+    - name: Neustart SSH-Dienst
+      systemd:
+        name: ssh
+        state: restarted
